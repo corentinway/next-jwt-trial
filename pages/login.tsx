@@ -86,7 +86,9 @@ export function Login({login} : {login: LoginFunction}) {
                         </button>
                         {
                             errors.apiError &&
-                            <div className='alert alert-danger mt-3 mb-0'>errors.apiError?.message</div>
+                            <div role="alert" className='alert alert-danger mt-3 mb-0'>
+                                errors.apiError?.message
+                                </div>
                         }
                     </form>
                 </div>
