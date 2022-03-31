@@ -3,10 +3,14 @@ import * as Yup from 'yup';
 import { RequiredStringSchema } from 'yup/lib/string';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm} from 'react-hook-form';
+import { useState } from 'react';
 
 export type LoginFunction = (username: string, password : string) => Promise<boolean>;
 
 export function Login({login} : {login: LoginFunction}) {
+
+    const [apiError, setApiError] = useState(false);
+    const [apiErrorMessage, setApiErrorMessage] = useState("");
 
     type FormType = {
         username: RequiredStringSchema<string | undefined>,
@@ -38,7 +42,11 @@ export function Login({login} : {login: LoginFunction}) {
         // TODO FIXME
         // TODO use setError
         console.log(`sending login data ${username} and ${password}`);
-        await login(username, password);
+        const isValid = await login(username, password);
+        if (!isValid) {
+            setApiError(true);
+            setApiErrorMessage('Invalid credentials');
+        }
         return Promise.resolve();
     }
 
@@ -85,9 +93,9 @@ export function Login({login} : {login: LoginFunction}) {
                             Login
                         </button>
                         {
-                            errors.apiError &&
+                            apiError &&
                             <div role="alert" className='alert alert-danger mt-3 mb-0'>
-                                errors.apiError?.message
+                                apiErrorMessage
                                 </div>
                         }
                     </form>
