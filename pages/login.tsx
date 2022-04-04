@@ -3,8 +3,14 @@ import * as Yup from 'yup';
 import { RequiredStringSchema } from 'yup/lib/string';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm} from 'react-hook-form';
+import { useState } from 'react';
 
-function Login() {
+export type LoginFunction = (username: string, password : string) => Promise<boolean>;
+
+export function Login({login} : {login: LoginFunction}) {
+
+    const [apiError, setApiError] = useState(false);
+    const [apiErrorMessage, setApiErrorMessage] = useState("");
 
     type FormType = {
         username: RequiredStringSchema<string | undefined>,
@@ -12,7 +18,7 @@ function Login() {
     }
 
     const formConstraint : FormType = {
-        username: Yup.string().required('Username is required'),
+        username: Yup.string().required('User name is required'),
         password: Yup.string().required('Password is required')
     }
 
@@ -32,10 +38,15 @@ function Login() {
 
     
     // see https://react-hook-form.com/api/useform/handlesubmit/
-    function onSubmit({username, password} : FormValues ) {
+    async function onSubmit({username, password} : FormValues ) {
         // TODO FIXME
         // TODO use setError
-        console.log(`sending login data ${username} and ${password}`);
+        //console.log(`sending login data ${username} and ${password}`);
+        const isValid = await login(username, password);
+        if (!isValid) {
+            setApiError(true);
+            setApiErrorMessage('Invalid credentials');
+        }
         return Promise.resolve();
     }
 
@@ -51,22 +62,28 @@ function Login() {
                 <div className="card-body">
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="form-group">
-                            <label>UserName</label>
+                            <label htmlFor="username">UserName</label>
                             <input 
                                 type="text"
+                                role="textbox"
+                                aria-label="user name"
+                                id="username"
                                 {...register('username')}
                                 className={`form-control ${errors.username ? 'is-invalid' : ''}`}
                             />
-                            <div className="invalid-feedback">{errors.username?.message}</div>
+                            <div role="alert" className="invalid-feedback">{errors.username?.message}</div>
                         </div>
                         <div className="form-group">
-                            <label>Password</label>
+                            <label htmlFor='password'>Password</label>
                             <input 
                                 type="password"
+                                role="textbox"
+                                aria-label="password"
+                                id="password"
                                 {...register('password')}
                                 className={`form-control ${errors.password ? 'is-invalid' : ''}`}
                             />
-                            <div className="invalid-feedback">{errors.password?.message}</div>
+                            <div role="alert" className="invalid-feedback">{errors.password?.message}</div>
                         </div>
                         <button 
                             disabled={formState.isSubmitting}
@@ -76,8 +93,10 @@ function Login() {
                             Login
                         </button>
                         {
-                            errors.apiError &&
-                            <div className='alert alert-danger mt-3 mb-0'>errors.apiError?.message</div>
+                            apiError &&
+                            <div role="alert" className='alert alert-danger mt-3 mb-0'>
+                                {apiErrorMessage}
+                                </div>
                         }
                     </form>
                 </div>
@@ -85,5 +104,3 @@ function Login() {
         </div>
     )
 }
-
-export default Login;
