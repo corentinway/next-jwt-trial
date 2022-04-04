@@ -4,9 +4,9 @@ import {Login, LoginFunction} from '../pages/login';
 const mockLogin : LoginFunction = jest.fn((username, password) => {
     return Promise.resolve(true);
 });
-// const mockInvalidLogin : LoginFunction = jest.fn((username, password) => {
-//     return Promise.resolve(false);
-// });
+const mockInvalidLogin : LoginFunction = jest.fn((username, password) => {
+    return Promise.resolve(false);
+});
 
 describe('Login', () => {
     beforeEach(() => {
@@ -92,28 +92,53 @@ describe('Login', () => {
         // WHEN form is submitted
         fireEvent.submit(screen.getByRole('button'));
         // THEN
-        await waitFor( () => expect(screen.findAllByText(/is required/i)).toHaveLength(0));
+
+        try {
+            await screen.findAllByText(/is required/i)
+                .then( () => {
+                    throw new Error('no alert message expected');
+                })
+                .catch( /*nothing to do */);
+            expect(true).toBeFalsy();
+        } catch(e) {
+            expect(true).toBeTruthy();
+        }
         expect(mockLogin).toBeCalledWith('corentin', 'azerty');
     });
-    // it('should display API alert given invalid username and password ', async () => {
-    //     render(<Login login={mockInvalidLogin}/>);
-    //     // GIVEN valid data
-    //     fireEvent.input(screen.getByRole('textbox', {name: 'user name'}), {
-    //         target: {
-    //             value: 'corentin'
-    //         }
-    //     });
-    //     fireEvent.input(screen.getByRole('textbox', {name: 'password'}), {
-    //         target: {
-    //             value: 'azerty'
-    //         }
-    //     });
-    //     // WHEN form is submitted
-    //     fireEvent.submit(screen.getByRole('button'));
-    //     // THEN no field alert
-    //     await waitFor( () => expect(screen.findAllByText(/is required/i)).toHaveLength(0));
-    //     expect(mockInvalidLogin).toBeCalledWith('corentin', 'azerty');
+
+    it('should display API alert given invalid username and password ', async () => {
+        render(<Login login={mockInvalidLogin}/>);
+        // GIVEN valid data
+        fireEvent.input(screen.getByRole('textbox', {name: 'user name'}), {
+            target: {
+                value: 'corentin'
+            }
+        });
+        fireEvent.input(screen.getByRole('textbox', {name: 'password'}), {
+            target: {
+                value: 'azerty'
+            }
+        });
+        // WHEN form is submitted
+        fireEvent.submit(screen.getByRole('button'));
+        // THEN no field alert
+        try {
+            await screen.findAllByText(/is required/i)
+                .then( () => {
+                    throw new Error('no alert message expected');
+                })
+                .catch( /*nothing to do */);
+            expect(true).toBeFalsy();
+        } catch(e) {
+            expect(true).toBeTruthy();
+        }
+
+        expect(mockInvalidLogin).toBeCalledWith('corentin', 'azerty');
+
+        //expect(screen.getByRole('alert')).toBeDefined();
+        //expect(await screen.findAllByRole('alert')).toHaveLength(1);        
+        expect(await screen.findByText(/invalid credentials/i)).toBeDefined();
 
 
-    // });
+    });
 });
