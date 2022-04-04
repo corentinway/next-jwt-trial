@@ -41,7 +41,7 @@ export function Login({login} : {login: LoginFunction}) {
     async function onSubmit({username, password} : FormValues ) {
         // TODO FIXME
         // TODO use setError
-        console.log(`sending login data ${username} and ${password}`);
+        //console.log(`sending login data ${username} and ${password}`);
         const isValid = await login(username, password);
         if (!isValid) {
             setApiError(true);
@@ -95,7 +95,7 @@ export function Login({login} : {login: LoginFunction}) {
                         {
                             apiError &&
                             <div role="alert" className='alert alert-danger mt-3 mb-0'>
-                                apiErrorMessage
+                                {apiErrorMessage}
                                 </div>
                         }
                     </form>
