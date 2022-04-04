@@ -9,6 +9,9 @@ const mockInvalidLogin : LoginFunction = jest.fn((username, password) => {
 });
 
 describe('Login', () => {
+    beforeEach(() => {
+        
+    });
     it('renders login form', () => {
         render(<Login login={mockLogin}/>);
         // https://testing-library.com/docs/queries/about/#screen
@@ -89,6 +92,7 @@ describe('Login', () => {
         // WHEN form is submitted
         fireEvent.submit(screen.getByRole('button'));
         // THEN
+
         try {
             await screen.findAllByText(/is required/i)
                 .then( () => {
