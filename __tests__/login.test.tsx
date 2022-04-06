@@ -7,6 +7,10 @@ const mockLogin : LoginFunction = jest.fn((username, password) => {
 const mockInvalidLogin : LoginFunction = jest.fn((username, password) => {
     return Promise.resolve(false);
 });
+const mockLoginValidator : LoginFunction = jest.fn((username, password) => {
+    const isValid : boolean = username ==="corentin" && password === "azerty";
+    return Promise.resolve(isValid);
+});
 
 describe('Login', () => {
     beforeEach(() => {
@@ -79,22 +83,31 @@ describe('Login', () => {
     it('should not display error given valid values', async () => {
         render(<Login login={mockLogin}/>);
         // GIVEN valid data
+        inputCredentials('corentin', 'azerty');
+        // WHEN form is submitted
+        fireEvent.submit(screen.getByRole('button'));
+        // THEN
+        await assertNoText(/is required/i);
+        expect(mockLogin).toBeCalledWith('corentin', 'azerty');
+    });
+
+    function inputCredentials(username : string, password : string) {
         fireEvent.input(screen.getByRole('textbox', {name: 'user name'}), {
             target: {
-                value: 'corentin'
+                value: username
             }
         });
         fireEvent.input(screen.getByRole('textbox', {name: 'password'}), {
             target: {
-                value: 'azerty'
+                value: password
             }
         });
-        // WHEN form is submitted
-        fireEvent.submit(screen.getByRole('button'));
-        // THEN
+    }
 
+
+    async function assertNoText(pattern: RegExp) {
         try {
-            await screen.findAllByText(/is required/i)
+            await screen.findAllByText(pattern)
                 .then( () => {
                     throw new Error('no alert message expected');
                 })
@@ -103,35 +116,16 @@ describe('Login', () => {
         } catch(e) {
             expect(true).toBeTruthy();
         }
-        expect(mockLogin).toBeCalledWith('corentin', 'azerty');
-    });
+    }
 
     it('should display API alert given invalid username and password ', async () => {
         render(<Login login={mockInvalidLogin}/>);
         // GIVEN valid data
-        fireEvent.input(screen.getByRole('textbox', {name: 'user name'}), {
-            target: {
-                value: 'corentin'
-            }
-        });
-        fireEvent.input(screen.getByRole('textbox', {name: 'password'}), {
-            target: {
-                value: 'azerty'
-            }
-        });
+        inputCredentials('corentin', 'azerty');
         // WHEN form is submitted
         fireEvent.submit(screen.getByRole('button'));
         // THEN no field alert
-        try {
-            await screen.findAllByText(/is required/i)
-                .then( () => {
-                    throw new Error('no alert message expected');
-                })
-                .catch( /*nothing to do */);
-            expect(true).toBeFalsy();
-        } catch(e) {
-            expect(true).toBeTruthy();
-        }
+       await assertNoText(/is required/i);
 
         expect(mockInvalidLogin).toBeCalledWith('corentin', 'azerty');
 
@@ -139,6 +133,25 @@ describe('Login', () => {
         //expect(await screen.findAllByRole('alert')).toHaveLength(1);        
         expect(await screen.findByText(/invalid credentials/i)).toBeDefined();
 
-
     });
+    it('should hide error message given valid credentials after submitting invalid credentials', async () => {
+        render(<Login login={mockLoginValidator} />)
+        // GIVEN invalid data
+        inputCredentials('invalid_username', 'invalid_password');
+        // AND submitting
+        fireEvent.submit(screen.getByRole('button'));
+        // no field allert
+        await assertNoText(/is required/i);
+        expect(mockLoginValidator).toBeCalledWith('invalid_username', 'invalid_password');
+        expect(await screen.findByText(/invalid credentials/i)).toBeDefined();
+
+        //  GIVEN valid credentials
+        inputCredentials('corentin', 'azerty');
+        fireEvent.submit(screen.getByRole('button'));
+        // THEN
+        await assertNoText(/is required/i);
+        expect(mockLoginValidator).toBeCalledWith('corentin', 'azerty');
+        await assertNoText(/invalid credentials/i);
+
+    })
 });

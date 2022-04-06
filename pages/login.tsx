@@ -46,6 +46,9 @@ export function Login({login} : {login: LoginFunction}) {
         if (!isValid) {
             setApiError(true);
             setApiErrorMessage('Invalid credentials');
+        } else {
+            setApiError(false);
+            setApiErrorMessage('');
         }
 
         return Promise.resolve();
