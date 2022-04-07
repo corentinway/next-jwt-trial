@@ -1,5 +1,5 @@
 import {render, screen, fireEvent, waitFor} from '@testing-library/react';
-import {Login, LoginFunction} from '../pages/login';
+import {Login, LoginFunction} from '../components/login';
 
 const mockLogin : LoginFunction = jest.fn((username, password) => {
     return Promise.resolve(true);
